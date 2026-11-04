@@ -11,11 +11,14 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
+# Cấu hình cổng 10000 mặc định cho Render
+RUN sed -i 's/80/10000/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+
 # Copy toàn bộ vào máy chủ
 WORKDIR /var/www/html
 COPY . /var/www/html/
 
-# Tự động giải nén file zip chuẩn Linux
+# Tự động giải nén file zip chuẩn Linux nếu có
 RUN if [ -f "LongTech_Linux.zip" ]; then \
         unzip -o LongTech_Linux.zip -d /var/www/html/ \
         && rm -f LongTech_Linux.zip LongTech_Deploy.zip; \
@@ -29,5 +32,9 @@ RUN mkdir -p /var/www/html/assets/uploads \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-EXPOSE 80
-CMD ["apache2-foreground"]
+EXPOSE 10000
+
+# Khởi động Apache và đảm bảo lắng nghe đúng cổng của Render ($PORT hoặc 10000)
+CMD sed -i "s/Listen [0-9]*/Listen ${PORT:-10000}/g" /etc/apache2/ports.conf \
+    && sed -i "s/<VirtualHost \*:[0-9]*>/<VirtualHost *:${PORT:-10000}>/g" /etc/apache2/sites-available/000-default.conf \
+    && apache2-foreground
