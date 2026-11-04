@@ -1,0 +1,31 @@
+# ========================================================
+# LONGTECH - CẤU HÌNH APACHE CHO CLOUD RENDER
+# ========================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # 1. Chặn truy cập trực tiếp vào các file cấu hình và cơ sở dữ liệu
+    <FilesMatch "(^\.env|\.sql|\.log|\.git|config\.php)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+
+    # 2. Không cho phép duyệt trực tiếp cây thư mục mã nguồn
+    RewriteRule ^(includes|models|controllers)/ - [F,L,NC]
+
+    # 3. Chặn thực thi file PHP trong thư mục uploads
+    RewriteRule ^assets/uploads/.*\.php$ - [F,L,NC]
+
+    # 4. Giữ nguyên nếu truy cập vào file tĩnh thực tế (CSS, JS, Hình ảnh, Font)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 5. Định tuyến mọi URL thân thiện vào index.php
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+Options -Indexes
+AddDefaultCharset UTF-8
