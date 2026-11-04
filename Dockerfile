@@ -11,14 +11,17 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
-# Copy toàn bộ (kèm file LongTech_Deploy.zip) vào máy chủ
+# Copy toàn bộ vào máy chủ
 WORKDIR /var/www/html
 COPY . /var/www/html/
 
-# Tự động giải nén file LongTech_Deploy.zip
-RUN if [ -f "LongTech_Deploy.zip" ]; then \
+# Tự động giải nén file zip chuẩn Linux
+RUN if [ -f "LongTech_Linux.zip" ]; then \
+        unzip -o LongTech_Linux.zip -d /var/www/html/ \
+        && rm -f LongTech_Linux.zip LongTech_Deploy.zip; \
+    elif [ -f "LongTech_Deploy.zip" ]; then \
         unzip -o LongTech_Deploy.zip -d /var/www/html/ \
-        && rm LongTech_Deploy.zip; \
+        && rm -f LongTech_Deploy.zip; \
     fi
 
 # Phân quyền thư mục
