@@ -4,27 +4,28 @@
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
 
-    # 1. Chặn truy cập trực tiếp vào các file cấu hình và cơ sở dữ liệu
+    # Bỏ qua favicon.ico và robots.txt nếu không có
+    RewriteRule ^(favicon\.ico|robots\.txt)$ - [L]
+
+    # 1. Chặn file nhạy cảm
     <FilesMatch "(^\.env|\.sql|\.log|\.git|config\.php)$">
-        Order allow,deny
-        Deny from all
+        Require all denied
     </FilesMatch>
 
-    # 2. Không cho phép duyệt trực tiếp cây thư mục mã nguồn
+    # 2. Chặn duyệt thư mục code
     RewriteRule ^(includes|models|controllers)/ - [F,L,NC]
 
-    # 3. Chặn thực thi file PHP trong thư mục uploads
+    # 3. Chặn chạy php trong uploads
     RewriteRule ^assets/uploads/.*\.php$ - [F,L,NC]
 
-    # 4. Giữ nguyên nếu truy cập vào file tĩnh thực tế (CSS, JS, Hình ảnh, Font)
+    # 4. Nếu là file hoặc thư mục thật thì mở trực tiếp
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # 5. Định tuyến mọi URL thân thiện vào index.php
-    RewriteRule ^(.*)$ index.php [QSA,L]
+    # 5. Định tuyến vào index.php
+    RewriteRule ^ index.php [QSA,L]
 </IfModule>
 
 Options -Indexes
